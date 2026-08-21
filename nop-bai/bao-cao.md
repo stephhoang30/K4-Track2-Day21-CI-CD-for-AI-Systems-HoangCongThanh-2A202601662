@@ -1,103 +1,80 @@
 # Báo Cáo Lab Day 21 - CI/CD cho AI Systems
 
-<!--
-HƯỚNG DẪN - đọc rồi XÓA TOÀN BỘ các khối chú thích này sau khi điền xong:
-
-  - Giới hạn: KHÔNG QUÁ 1 TRANG A4, tương đương khoảng 450 - 550 từ nội dung.
-  - Chỉ điền vào các chỗ ___ và các ô trong bảng. Không thêm mục mới.
-  - Viết bằng câu hoàn chỉnh, không gạch đầu dòng cụt lủn.
-  - Kiểm tra độ dài sau khi đã xóa hết chú thích:
-        wc -w nop-bai/bao-cao.md
-    và xem trước bản in bằng cách mở file trên GitHub rồi Ctrl+P / Cmd+P.
--->
-
 | | |
 |---|---|
-| Họ và tên | ___ |
-| MSSV | ___ |
+| Họ và tên | Hoàng Công Thành |
+| MSSV | 2A202601662 |
 | Lớp / Khóa | K4 |
-| Repo GitHub | https://github.com/___/___ |
-| Ngày nộp | ___ |
+| Repo GitHub | https://github.com/stephhoang30/K4-Track2-Day21-CI-CD-for-AI-Systems-HoangCongThanh-2A202601662 |
+| Ngày nộp | 21/08/2026 |
 
 ---
 
 ## 1. Bộ Siêu Tham Số Đã Chọn và Lý Do
 
-<!-- Khoảng 120 - 150 từ. Điền kết quả thật từ MLflow UI ở Bước 1, tối thiểu 3 lần chạy. -->
-
 | Lần chạy | n_estimators | learning_rate | max_depth | f1_score | accuracy |
 |---|---|---|---|---|---|
-| 1 | ___ | ___ | ___ | ___ | ___ |
-| 2 | ___ | ___ | ___ | ___ | ___ |
-| 3 | ___ | ___ | ___ | ___ | ___ |
+| 1 | 200 | 0.1 | 5 | **0.7149** | 0.8740 |
+| 2 | 100 | 0.1 | 3 | 0.7109 | **0.8780** |
+| 3 | 50 | 0.1 | 2 | 0.6193 | 0.8500 |
 
-**Bộ siêu tham số đã chọn:** `n_estimators=___`, `learning_rate=___`, `max_depth=___`.
+<sub>Hai lần chạy còn lại (300/0.05/4 → F1 0.7070 và 200/0.05/3 → F1 0.7014) xem ảnh `01-mlflow-ui.png`.</sub>
 
-**Lý do:** ___
+**Bộ siêu tham số đã chọn:** `n_estimators=200`, `learning_rate=0.1`, `max_depth=5`.
 
-<!--
-Trả lời trong phần Lý do:
-  - Vì sao bộ này tốt hơn các bộ còn lại (dựa trên f1_score, không phải accuracy)?
-  - Lần chạy có accuracy cao nhất có trùng với lần có f1_score cao nhất không?
-    Nếu không, điều đó nói lên điều gì?
-  - Bạn quan sát thấy đánh đổi nào giữa n_estimators và learning_rate?
--->
+**Lý do:** Bộ này cho F1 cao nhất. Đáng chú ý là lần có accuracy cao nhất (lần 2) lại không
+phải lần có F1 cao nhất: accuracy chênh 0.004 theo chiều này thì F1 chênh 0.004 theo chiều
+ngược lại. Accuracy đã bão hòa quanh 0.87, không còn phân biệt được các mô hình, nên chọn
+theo nó là chọn nhầm. Hạ `learning_rate` xuống 0.05 buộc phải tăng `n_estimators` để bù,
+nhưng 300 cây vẫn thua 200 cây ở `learning_rate` 0.1. Giới hạn thật nằm ở `max_depth`: cây
+sâu 2 tầng không biểu diễn nổi tương tác giữa học vấn, hôn nhân và số giờ làm, khiến F1 rơi
+xuống 0.6193 — dưới ngưỡng — dù accuracy vẫn 0.85.
 
 ---
 
 ## 2. Vì Sao Ngưỡng Chất Lượng Đặt Trên F1 Chứ Không Phải Accuracy
 
-<!-- Khoảng 120 - 150 từ. -->
+Tập Adult chỉ có 24.8% mẫu thu nhập trên 50K. Một mô hình luôn trả lời "thu nhập thấp" vẫn
+đạt accuracy 0.752, chỉ kém mô hình tốt nhất của em 0.12 điểm dù không học được gì — phần
+lớn giá trị của accuracy đến từ việc đoán đúng lớp đa số, thứ vốn không cần mô hình.
 
-___
-
-<!--
-Cần nêu được:
-  - Phân bố lớp của tập dữ liệu (tỷ lệ lớp thu nhập > 50K) và hệ quả của nó.
-  - Accuracy của một mô hình luôn trả lời "thu nhập thấp" là bao nhiêu, vì sao con số
-    đó gây hiểu nhầm.
-  - F1 của lớp dương đo điều gì mà accuracy không đo được.
-  - Vì sao KHÔNG dùng average="weighted" hay average="macro" khi gọi f1_score.
--->
+F1 của lớp dương là trung bình điều hòa của precision và recall chỉ trên lớp thu nhập cao,
+đúng nhóm bài toán quan tâm; mô hình đoán bừa có recall bằng 0 nên F1 bằng 0, phơi bày ngay
+thứ accuracy che giấu. Không dùng `average="weighted"` vì nó lấy trung bình có trọng số theo
+số mẫu, để lớp đa số chiếm ưu thế và tái lập đúng vấn đề của accuracy; cũng không dùng
+`average="macro"` vì nó tính cả F1 lớp âm rồi chia đôi, làm loãng tín hiệu cần đo.
 
 ---
 
 ## 3. Khó Khăn Gặp Phải và Cách Giải Quyết
 
-<!-- Nêu 2 - 3 khó khăn thật, mỗi ô một câu ngắn. -->
-
 | Khó khăn | Nguyên nhân | Cách giải quyết |
 |---|---|---|
-| ___ | ___ | ___ |
-| ___ | ___ | ___ |
-| ___ | ___ | ___ |
+| `import mlflow` báo thiếu `pkg_resources` | mlflow 2.13 còn dùng `pkg_resources`, venv pip đời mới không kèm `setuptools` | Thêm `setuptools<81` vào `requirements.txt` |
+| `pytest` ghi run rác vào `mlflow.db` thật | Test gọi `train()` nên MLflow ghi vào tracking store mặc định | Thêm `tests/conftest.py` trỏ MLflow vào thư mục tạm |
+| `git push` không kích hoạt workflow | Repo là fork, GitHub chặn đến khi chủ repo xác nhận | Loại trừ (`workflow_dispatch` chạy được, `push` thì không) rồi bật Actions |
 
 ---
 
-## 4. So Sánh Bước 2 và Bước 3 (bắt buộc, 2 - 3 câu)
-
-<!-- Lấy số liệu từ bảng ở mục 3.6 của tasks/buoc-3.md. -->
+## 4. So Sánh Bước 2 và Bước 3
 
 | | f1_score | accuracy |
 |---|---|---|
-| Bước 2 (chỉ `train_batch1`) | ___ | ___ |
-| Bước 3 (thêm `train_batch2`) | ___ | ___ |
+| Bước 2 (`train_batch1`, 22.361 mẫu) | 0.7149 | 0.8740 |
+| Bước 3 (thêm `train_batch2`, 44.722 mẫu) | 0.7354 | 0.8820 |
 
-**Nhận xét:** ___
-
-<!--
-Một câu trả lời trung thực kiểu "f1 giảm 0,01 vì dữ liệu mới cùng phân phối, không mang
-thêm thông tin mới" được đánh giá cao hơn kết luận sai rằng thêm dữ liệu luôn tốt hơn.
--->
+**Nhận xét:** Gấp đôi dữ liệu làm F1 tăng 0.0205 còn accuracy chỉ tăng 0.0080. Mức tăng dồn
+vào lớp thiểu số là hợp lý, vì 22.361 mẫu mới mang theo khoảng 5.500 mẫu thu nhập cao —
+đúng nhóm mô hình còn thiếu dữ liệu để học.
 
 ---
 
-## 5. Phần Bonus Đã Thực Hiện (nếu có)
+## 5. Phần Bonus Đã Thực Hiện
 
-<!-- Xóa cả mục 5 nếu không làm bonus. Mỗi bonus tối đa 1 dòng. -->
+- [ ] Bonus 1 - DagsHub: chưa thực hiện.
+- [x] Bonus 2 - Ngưỡng quyết định: quét 0.10–0.90; ngưỡng 0.30 cho F1 0.7368, hơn mặc định 0.50 là +0.0219.
+- [x] Bonus 3 - Precision/recall: `outputs/detail.txt`. Ở ngưỡng 0.5 mô hình bỏ sót 49 người thu nhập cao nhưng chỉ gán nhầm 12 — bỏ sót tốn kém hơn, nên hạ ngưỡng đổi precision lấy recall là đúng.
+- [x] Bonus 4 - Hoàn trả phiên bản trước: Train đẩy lên `artifacts/candidate/`, quality gate so F1 mới với `artifacts/current/report.json`, qua mới promote.
+- [x] Bonus 5 - Cảnh báo lệch dữ liệu: cảnh báo nếu tỷ lệ lớp dương lệch quá 5 điểm phần trăm so với 24.8%, ghi vào `outputs/report.json`.
 
-- [ ] Bonus 1 - Tracking MLflow từ xa với DagsHub: ___
-- [ ] Bonus 2 - Điều chỉnh ngưỡng quyết định: ___
-- [ ] Bonus 3 - Báo cáo precision / recall tự động: ___
-- [ ] Bonus 4 - Hoàn trả về phiên bản trước: ___
-- [ ] Bonus 5 - Cảnh báo lệch lạc dữ liệu: ___
+<sub>Ảnh `04-curl-api.png` là kết xuất output thật của `curl` kèm mốc thời gian UTC, không phải ảnh chụp cửa sổ terminal.</sub>
