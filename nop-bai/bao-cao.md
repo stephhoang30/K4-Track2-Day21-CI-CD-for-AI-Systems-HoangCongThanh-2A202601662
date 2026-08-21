@@ -63,9 +63,14 @@ số mẫu, để lớp đa số chiếm ưu thế và tái lập đúng vấn �
 | Bước 2 (`train_batch1`, 22.361 mẫu) | 0.7149 | 0.8740 |
 | Bước 3 (thêm `train_batch2`, 44.722 mẫu) | 0.7354 | 0.8820 |
 
-**Nhận xét:** Gấp đôi dữ liệu làm F1 tăng 0.0205 còn accuracy chỉ tăng 0.0080. Mức tăng dồn
-vào lớp thiểu số là hợp lý, vì 22.361 mẫu mới mang theo khoảng 5.500 mẫu thu nhập cao —
-đúng nhóm mô hình còn thiếu dữ liệu để học.
+**Nhận xét:** F1 tăng 0.0205 còn accuracy chỉ tăng 0.0080. Hai nửa dữ liệu cùng phân phối
+nên dữ liệu mới không mang thêm thông tin mới về mặt cấu trúc; mức tăng đến từ việc `max_depth=5`
+đủ chỗ để tận dụng thêm mẫu, và khoảng 5.500 mẫu thu nhập cao bổ sung rơi đúng vào lớp mà
+số mẫu đang là ràng buộc. Đó cũng là lý do F1 nhích nhiều hơn accuracy gần ba lần. Điều
+được kiểm chứng ở đây không phải con số cao hơn mà là vòng tự động chạy đúng: một commit
+dữ liệu đi hết từ `dvc push` đến model đang phục vụ trên VM, không ai can thiệp.
+
+<sub>Prefix DVC trên S3 là `dvc-k4/` thay vì `dvc/` để tách dữ liệu lab này khỏi lab cũ dùng chung bucket.</sub>
 
 ---
 

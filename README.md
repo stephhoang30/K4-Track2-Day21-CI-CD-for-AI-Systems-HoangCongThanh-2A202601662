@@ -218,15 +218,17 @@ mlflow==2.13.0
 scikit-learn==1.4.2
 pandas==2.2.2
 # DVC extra theo provider: [gs]=GCP, [s3]=AWS, [azure]=Azure
-dvc[gs]==3.50.1
+dvc[s3]==3.50.1
 pathspec==0.11.2
 pytest==8.2.0
 fastapi==0.111.0
 uvicorn==0.29.0
 joblib==1.4.2
 # Cloud SDK theo provider: google-cloud-storage (GCP), boto3 (AWS), azure-storage-blob (Azure)
-google-cloud-storage==2.16.0
+boto3==1.34.100
 pyyaml==6.0.1
+# mlflow 2.13 con import pkg_resources; venv cua pip moi khong con kem setuptools
+setuptools<81
 ```
 
 ---
