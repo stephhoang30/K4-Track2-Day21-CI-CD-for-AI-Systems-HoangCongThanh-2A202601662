@@ -81,5 +81,3 @@ dữ liệu đi hết từ `dvc push` đến model đang phục vụ trên VM, k
 - [x] Bonus 3 - Precision/recall: `outputs/detail.txt`. Ở ngưỡng 0.5 mô hình bỏ sót 49 người thu nhập cao nhưng chỉ gán nhầm 12 — bỏ sót tốn kém hơn, nên hạ ngưỡng đổi precision lấy recall là đúng.
 - [x] Bonus 4 - Hoàn trả phiên bản trước: Train đẩy lên `artifacts/candidate/`, quality gate so F1 mới với `artifacts/current/report.json`, qua mới promote.
 - [x] Bonus 5 - Cảnh báo lệch dữ liệu: cảnh báo nếu tỷ lệ lớp dương lệch quá 5 điểm phần trăm so với 24.8%, ghi vào `outputs/report.json`.
-
-<sub>Ảnh `04-curl-api.png` là kết xuất output thật của `curl` kèm mốc thời gian UTC, không phải ảnh chụp cửa sổ terminal.</sub>
