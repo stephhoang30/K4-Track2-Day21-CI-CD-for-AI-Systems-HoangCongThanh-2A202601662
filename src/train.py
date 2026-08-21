@@ -172,6 +172,11 @@ def train(
         print(f"Nguong tot nhat {best_t:.2f} -> F1 {best_f1:.4f} "
               f"({best_f1 - f1:+.4f} so voi nguong 0.50)")
 
+        # Bao truoc ngay tren may ca nhan xem quality gate trong CI se cho qua
+        # hay chan, khoi phai push roi moi biet.
+        verdict = "QUA" if f1 >= F1_THRESHOLD else "BI CHAN"
+        print(f"Quality gate (f1 >= {F1_THRESHOLD}): {verdict}")
+
         detail = write_detail(
             y_eval, preds, params, pos_rate,
             {**tuning, "grid": grid},
